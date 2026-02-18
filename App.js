@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { StatusBar, Platform, NativeModules } from 'react-native';
 
 import HomeScreen from './screens/HomeScreen';
 import TwinkleScreen from './screens/TwinkleScreen';
@@ -38,7 +39,36 @@ const routeToTab = {
 const AppShell = () => {
   const navigationRef = useNavigationContainerRef();
   const [currentRoute, setCurrentRoute] = React.useState('Home');
-  const { palette } = useAppTheme();
+  const { palette, isDark } = useAppTheme();
+
+  React.useEffect(() => {
+    if (isDark) {
+      // Dark mode
+      StatusBar.setBarStyle('light-content');
+      StatusBar.setBackgroundColor(palette.background);
+    } else {
+      // Light mode
+      StatusBar.setBarStyle('dark-content');
+      StatusBar.setBackgroundColor('#FFFFFF');
+    }
+    
+    if (Platform.OS === 'android') {
+      StatusBar.setTranslucent(false);
+      StatusBar.setHidden(false);
+      
+      // Set navigation bar color using native module
+      try {
+        const { NavigationBarModule } = NativeModules;
+        if (NavigationBarModule) {
+          const navBarColor = isDark ? '#050608' : '#FFFFFF';
+          const isLightIcons = !isDark;
+          NavigationBarModule.setNavigationBarColor(navBarColor, isLightIcons);
+        }
+      } catch (e) {
+        // Silently handle if native module is not available
+      }
+    }
+  }, [isDark, palette]);
 
   const paperTheme = React.useMemo(
     () => ({
