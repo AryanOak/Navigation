@@ -1,0 +1,39 @@
+﻿# macOS
+.DS_Store
+
+# Xcode
+ios/Pods/
+ios/build/
+*.xcworkspace
+
+# Android/IntelliJ
+build/
+.idea/
+.gradle/
+local.properties
+*.iml
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Metro
+.metro-health-check*
+
+# Testing
+coverage/
+
+# Watchman
+.watchmanconfig
+
+# Misc
+*.log
+*.orig.*
+
+# Legacy Expo artifacts (safe to keep ignored)
+.expo/
+.expo-shared/
+web-build/
+dist/
