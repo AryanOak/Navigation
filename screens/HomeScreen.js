@@ -1,5 +1,6 @@
-﻿import React from 'react';
-import { View, FlatList, StyleSheet, Image, TouchableOpacity, Text } from 'react-native';
+﻿import React, { useRef, useState } from 'react';
+import { View, FlatList, StyleSheet, Image, TouchableOpacity, Text, Animated } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MotiView } from 'moti';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -173,6 +174,35 @@ const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const { palette, isDark, toggleTheme } = useAppTheme();
   const styles = React.useMemo(() => createStyles(palette), [palette]);
+  
+  // Refresh animation states
+  const refreshRotateValue = useRef(new Animated.Value(0)).current;
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // onResume - Trigger refresh animation when coming back to foreground
+  useFocusEffect(
+    React.useCallback(() => {
+      // Start refresh animation
+      setIsRefreshing(true);
+      
+      // Animate rotation
+      Animated.sequence([
+        Animated.timing(refreshRotateValue, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        refreshRotateValue.setValue(0);
+        setIsRefreshing(false);
+      });
+    }, [refreshRotateValue])
+  );
+
+  const rotateInterpolation = refreshRotateValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
     <View style={styles.container}>
@@ -195,10 +225,31 @@ const HomeScreen = () => {
           <View style={styles.dot} />
         </View>
 
-        <TouchableOpacity activeOpacity={0.8}>
-          <Ionicons name="search-outline" size={25} color={palette.icon} />
-        </TouchableOpacity>
+        <View style={{ position: 'relative' }}>
+          {isRefreshing && (
+            <Animated.View
+              style={{
+                transform: [{ rotate: rotateInterpolation }],
+              }}
+            >
+              <Ionicons name="sync-outline" size={24} color={palette.active} />
+            </Animated.View>
+          )}
+          {!isRefreshing && (
+            <TouchableOpacity activeOpacity={0.8}>
+              <Ionicons name="search-outline" size={25} color={palette.icon} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
+
+      {isRefreshing && (
+        <View style={[styles.refreshIndicator, { backgroundColor: palette.surface }]}>
+          <Text style={[styles.refreshText, { color: palette.active }]}>
+            ✓ Feed refreshed
+          </Text>
+        </View>
+      )}
 
       <FlatList
         data={posts}
@@ -252,6 +303,18 @@ const createStyles = (palette) =>
       height: 4,
       borderRadius: 2,
       backgroundColor: palette.headerPill,
+    },
+    refreshIndicator: {
+      marginHorizontal: 12,
+      marginBottom: 10,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    refreshText: {
+      fontSize: 13,
+      fontWeight: '600',
     },
     feedContent: {
       paddingHorizontal: 12,

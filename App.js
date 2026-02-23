@@ -12,6 +12,7 @@ import CommentScreen from './screens/CommentScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import FloatingBottomBar from './components/FloatingBottomBar';
 import { ThemeProvider, useAppTheme } from './context/ThemeContext';
+import { AppLifecycleProvider } from './context/AppLifecycleContext';
 
 const Stack = createStackNavigator();
 
@@ -138,9 +139,11 @@ const AppShell = () => {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <AppShell />
-      </ThemeProvider>
+      <AppLifecycleProvider>
+        <ThemeProvider>
+          <AppShell />
+        </ThemeProvider>
+      </AppLifecycleProvider>
     </SafeAreaProvider>
   );
 }
