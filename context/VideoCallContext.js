@@ -161,9 +161,15 @@ export const VideoCallProvider = ({ children, serverURL }) => {
     }
 
     const stream = await mediaDevices.getUserMedia({
-      audio: true,
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+      },
       video: {
         facingMode: 'user',
+        width: 640,
+        height: 480,
+        frameRate: 24,
       },
     });
 
