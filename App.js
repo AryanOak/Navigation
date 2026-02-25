@@ -3,7 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar, Platform, NativeModules } from 'react-native';
+import { StatusBar, Platform, NativeModules, Alert } from 'react-native';
 
 import HomeScreen from './screens/HomeScreen';
 import TwinkleScreen from './screens/TwinkleScreen';
@@ -13,6 +13,29 @@ import ProfileScreen from './screens/ProfileScreen';
 import FloatingBottomBar from './components/FloatingBottomBar';
 import { ThemeProvider, useAppTheme } from './context/ThemeContext';
 import { AppLifecycleProvider } from './context/AppLifecycleContext';
+import { VideoCallProvider } from './context/VideoCallContext';
+
+// Global error handler for unhandled promise rejections
+const handleError = (error, isFatal) => {
+  console.log('=== GLOBAL ERROR CAUGHT ===');
+  console.error('Error:', error);
+  console.error('Is Fatal:', isFatal);
+  if (error?.stack) {
+    console.error('Stack:', error.stack);
+  }
+  
+  // Show user-facing alert
+  Alert.alert(
+    'Error Occurred',
+    `${error?.message || 'Unknown error'}\n\nCheck console logs for details.`,
+    [{ text: 'OK' }]
+  );
+};
+
+// Set up error handler
+if (typeof ErrorUtils !== 'undefined' && ErrorUtils?.setGlobalHandler) {
+  ErrorUtils.setGlobalHandler(handleError);
+}
 
 const Stack = createStackNavigator();
 
@@ -137,11 +160,18 @@ const AppShell = () => {
 };
 
 export default function App() {
+  // Configure server URL - Change this to your laptop/desktop IP address
+  // For example: 'http://192.168.1.100:3000'
+  // Leave as localhost for testing on same machine
+  const serverURL = 'http://10.1.5.104:3000'; // UPDATE WITH YOUR SERVER IP
+  
   return (
     <SafeAreaProvider>
       <AppLifecycleProvider>
         <ThemeProvider>
-          <AppShell />
+          <VideoCallProvider serverURL={serverURL}>
+            <AppShell />
+          </VideoCallProvider>
         </ThemeProvider>
       </AppLifecycleProvider>
     </SafeAreaProvider>
